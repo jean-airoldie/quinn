@@ -645,7 +645,7 @@ impl From<VarIntBoundsExceeded> for ConfigError {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default, Copy, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Copy, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct IdleTimeout(VarInt);
 
 impl From<VarInt> for IdleTimeout {
