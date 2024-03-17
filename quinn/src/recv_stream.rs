@@ -141,7 +141,25 @@ impl RecvStream {
         .await
     }
 
-    fn poll_read(
+    /// Attempts to read from the stream into buf.
+    ///
+    /// On success, returns Poll::Ready(Ok(())) and places data in the
+    /// unfilled portion of buf. If no data was read (buf.filled().len() is unchanged),
+    /// it implies that EOF has been reached.
+    ///
+    /// If no data is available for reading, the method returns Poll::Pending
+    /// and arranges for the current task (via cx.waker()) to receive a notification
+    /// when the object becomes readable or is closed.
+    pub fn poll_read(
+        &mut self,
+        cx: &mut Context,
+        buf: &mut [u8],
+    ) -> Poll<Result<(), ReadError>> {
+        let mut buf = ReadBuf::new(buf);
+        self.poll_read_buf(cx, &mut buf)
+    }
+
+    fn poll_read_buf(
         &mut self,
         cx: &mut Context,
         buf: &mut ReadBuf<'_>,
@@ -197,7 +215,7 @@ impl RecvStream {
     }
 
     /// Foundation of [`Self::read_chunk`]
-    fn poll_read_chunk(
+    pub fn poll_read_chunk(
         &mut self,
         cx: &mut Context,
         max_length: usize,
@@ -451,7 +469,7 @@ impl futures_io::AsyncRead for RecvStream {
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
         let mut buf = ReadBuf::new(buf);
-        ready!(RecvStream::poll_read(self.get_mut(), cx, &mut buf))?;
+        ready!(RecvStream::poll_read_buf(self.get_mut(), cx, &mut buf))?;
         Poll::Ready(Ok(buf.filled().len()))
     }
 }
@@ -462,7 +480,7 @@ impl tokio::io::AsyncRead for RecvStream {
         cx: &mut Context<'_>,
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
-        ready!(Self::poll_read(self.get_mut(), cx, buf))?;
+        ready!(Self::poll_read_buf(self.get_mut(), cx, buf))?;
         Poll::Ready(Ok(()))
     }
 }
@@ -550,7 +568,7 @@ impl<'a> Future for Read<'a> {
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let this = self.get_mut();
-        ready!(this.stream.poll_read(cx, &mut this.buf))?;
+        ready!(this.stream.poll_read_buf(cx, &mut this.buf))?;
         match this.buf.filled().len() {
             0 if this.buf.capacity() != 0 => Poll::Ready(Ok(None)),
             n => Poll::Ready(Ok(Some(n))),
@@ -574,7 +592,7 @@ impl<'a> Future for ReadExact<'a> {
         let total = this.buf.remaining();
         let mut remaining = total;
         while remaining > 0 {
-            ready!(this.stream.poll_read(cx, &mut this.buf))?;
+            ready!(this.stream.poll_read_buf(cx, &mut this.buf))?;
             let new = this.buf.remaining();
             if new == remaining {
                 let read = total - remaining;
