@@ -214,7 +214,7 @@ impl RecvStream {
         .await
     }
 
-    /// Attempts to read a chunk from the stream into buf.
+    /// Attempts to read a chunk from the stream.
     ///
     /// On success, returns `Poll::Ready(Ok(Some(chunk)))` and places data in
     /// the buf. If `Poll::Ready(Ok(None))` is returned, it implies that EOF has been reached.
@@ -222,7 +222,7 @@ impl RecvStream {
     /// If no data is available for reading, the method returns `Poll::Pending`.
     /// and arranges for the current task (via cx.waker()) to receive a notification
     /// when the object becomes readable or is closed.
-    pub fn poll_read_chunk(
+    fn poll_read_chunk(
         &mut self,
         cx: &mut Context,
         max_length: usize,
