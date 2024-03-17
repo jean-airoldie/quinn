@@ -143,9 +143,8 @@ impl RecvStream {
 
     /// Attempts to read from the stream into buf.
     ///
-    /// On success, returns Poll::Ready(Ok(())) and places data in the
-    /// unfilled portion of buf. If no data was read (buf.filled().len() is unchanged),
-    /// it implies that EOF has been reached.
+    /// On success, returns Poll::Ready(Ok(num_bytes_read)) and places data in
+    /// the buf. If no data was read, it implies that EOF has been reached.
     ///
     /// If no data is available for reading, the method returns Poll::Pending
     /// and arranges for the current task (via cx.waker()) to receive a notification
@@ -154,9 +153,10 @@ impl RecvStream {
         &mut self,
         cx: &mut Context,
         buf: &mut [u8],
-    ) -> Poll<Result<(), ReadError>> {
+    ) -> Poll<Result<usize, ReadError>> {
         let mut buf = ReadBuf::new(buf);
-        self.poll_read_buf(cx, &mut buf)
+        ready!(self.poll_read_buf(cx, &mut buf))?;
+        Poll::Ready(Ok(buf.filled().len()))
     }
 
     fn poll_read_buf(
@@ -214,7 +214,14 @@ impl RecvStream {
         .await
     }
 
-    /// Foundation of [`Self::read_chunk`]
+    /// Attempts to read a chunk from the stream into buf.
+    ///
+    /// On success, returns `Poll::Ready(Ok(Some(chunk)))` and places data in
+    /// the buf. If `Poll::Ready(Ok(None))` is returned, it implies that EOF has been reached.
+    ///
+    /// If no data is available for reading, the method returns `Poll::Pending`.
+    /// and arranges for the current task (via cx.waker()) to receive a notification
+    /// when the object becomes readable or is closed.
     pub fn poll_read_chunk(
         &mut self,
         cx: &mut Context,
