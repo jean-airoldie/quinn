@@ -35,6 +35,7 @@ impl Send {
         matches!(self.state, SendState::ResetSent { .. })
     }
 
+    #[inline]
     pub(super) fn finish(&mut self) -> Result<(), FinishError> {
         if let Some(error_code) = self.stop_reason {
             Err(FinishError::Stopped(error_code))
@@ -49,6 +50,7 @@ impl Send {
         }
     }
 
+    #[inline]
     pub(super) fn write<S: BytesSource>(
         &mut self,
         source: &mut S,
@@ -84,6 +86,7 @@ impl Send {
     }
 
     /// Update stream state due to a reset sent by the local application
+    #[inline]
     pub(super) fn reset(&mut self) {
         use SendState::*;
         if let DataSent { .. } | Ready = self.state {

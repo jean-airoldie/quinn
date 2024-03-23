@@ -1154,6 +1154,7 @@ impl Connection {
     /// Ping the remote endpoint
     ///
     /// Causes an ACK-eliciting packet to be transmitted.
+    #[inline]
     pub fn ping(&mut self) {
         self.spaces[self.highest_space].ping_pending = true;
     }
@@ -1164,6 +1165,7 @@ impl Connection {
     }
 
     /// Get a session reference
+    #[inline]
     pub fn crypto_session(&self) -> &dyn crypto::Session {
         &*self.crypto
     }
@@ -1172,6 +1174,7 @@ impl Connection {
     ///
     /// If this returns `false`, the connection may be either established or closed, signaled by the
     /// emission of a `Connected` or `ConnectionLost` message respectively.
+    #[inline]
     pub fn is_handshaking(&self) -> bool {
         self.state.is_handshake()
     }
@@ -1183,6 +1186,7 @@ impl Connection {
     /// error such as a time-out or certificate validation failure.
     ///
     /// A `ConnectionLost` event is emitted with details when the connection becomes closed.
+    #[inline]
     pub fn is_closed(&self) -> bool {
         self.state.is_closed()
     }
@@ -1191,6 +1195,7 @@ impl Connection {
     ///
     /// Closed connections become drained after a brief timeout to absorb any remaining in-flight
     /// packets from the peer. All drained connections have been closed.
+    #[inline]
     pub fn is_drained(&self) -> bool {
         self.state.is_drained()
     }
@@ -1198,26 +1203,31 @@ impl Connection {
     /// For clients, if the peer accepted the 0-RTT data packets
     ///
     /// The value is meaningless until after the handshake completes.
+    #[inline]
     pub fn accepted_0rtt(&self) -> bool {
         self.accepted_0rtt
     }
 
     /// Whether 0-RTT is/was possible during the handshake
+    #[inline]
     pub fn has_0rtt(&self) -> bool {
         self.zero_rtt_enabled
     }
 
     /// Whether there are any pending retransmits
+    #[inline]
     pub fn has_pending_retransmits(&self) -> bool {
         !self.spaces[SpaceId::Data].pending.is_empty(&self.streams)
     }
 
     /// Look up whether we're the client or server of this Connection
+    #[inline]
     pub fn side(&self) -> Side {
         self.side
     }
 
     /// The latest socket address for this connection's peer
+    #[inline]
     pub fn remote_address(&self) -> SocketAddr {
         self.path.remote
     }

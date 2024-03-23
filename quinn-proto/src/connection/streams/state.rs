@@ -832,6 +832,7 @@ impl StreamsState {
         expanded
     }
 
+    #[inline]
     pub(super) fn insert(&mut self, remote: bool, id: StreamId) {
         let bi = id.dir() == Dir::Bi;
         // bidirectional OR (unidirectional AND NOT remote)

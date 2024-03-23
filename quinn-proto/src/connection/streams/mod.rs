@@ -40,6 +40,7 @@ impl<'a> Streams<'a> {
     /// Open a single stream if possible
     ///
     /// Returns `None` if the streams in the given direction are currently exhausted.
+    #[inline]
     pub fn open(&mut self, dir: Dir) -> Option<StreamId> {
         if self.conn_state.is_closed() {
             return None;
