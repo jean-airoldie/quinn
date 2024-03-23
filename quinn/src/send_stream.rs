@@ -53,6 +53,7 @@ impl SendStream {
     /// be shorter than `buf.len()`, indicating that only a prefix of `buf` was written.
     ///
     /// This operation is cancel-safe.
+    #[inline]
     pub async fn write(&mut self, buf: &[u8]) -> Result<usize, WriteError> {
         Write { stream: self, buf }.await
     }
@@ -60,6 +61,7 @@ impl SendStream {
     /// Convenience method to write an entire buffer to the stream
     ///
     /// This operation is *not* cancel-safe.
+    #[inline]
     pub async fn write_all(&mut self, buf: &[u8]) -> Result<(), WriteError> {
         WriteAll { stream: self, buf }.await
     }
@@ -98,6 +100,7 @@ impl SendStream {
         .await
     }
 
+    #[inline]
     fn execute_poll<F, R>(&mut self, cx: &mut Context, write_fn: F) -> Poll<Result<R, WriteError>>
     where
         F: FnOnce(&mut proto::SendStream) -> Result<R, proto::WriteError>,
@@ -134,6 +137,7 @@ impl SendStream {
     ///
     /// No new data may be written after calling this method. Completes when the peer has
     /// acknowledged all sent data, retransmitting data as needed.
+    #[inline]
     pub async fn finish(&mut self) -> Result<(), WriteError> {
         Finish { stream: self }.await
     }
@@ -332,6 +336,7 @@ struct Finish<'a> {
 impl Future for Finish<'_> {
     type Output = Result<(), WriteError>;
 
+    #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         self.get_mut().stream.poll_finish(cx)
     }
@@ -346,6 +351,7 @@ struct Stopped<'a> {
 impl Future for Stopped<'_> {
     type Output = Result<VarInt, StoppedError>;
 
+    #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         self.get_mut().stream.poll_stopped(cx)
     }
@@ -362,6 +368,7 @@ struct Write<'a> {
 
 impl<'a> Future for Write<'a> {
     type Output = Result<usize, WriteError>;
+    #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let this = self.get_mut();
         let buf = this.buf;
@@ -380,6 +387,7 @@ struct WriteAll<'a> {
 
 impl<'a> Future for WriteAll<'a> {
     type Output = Result<(), WriteError>;
+    #[inline]
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
         let this = self.get_mut();
         loop {

@@ -271,6 +271,7 @@ impl Connection {
     /// Streams are cheap and instantaneous to open unless blocked by flow control. As a
     /// consequence, the peer won't be notified that a stream has been opened until the stream is
     /// actually used.
+    #[inline]
     pub fn open_uni(&self) -> OpenUni<'_> {
         OpenUni {
             conn: &self.0,
@@ -288,6 +289,7 @@ impl Connection {
     /// [`open_bi()`]: crate::Connection::open_bi
     /// [`SendStream`]: crate::SendStream
     /// [`RecvStream`]: crate::RecvStream
+    #[inline]
     pub fn open_bi(&self) -> OpenBi<'_> {
         OpenBi {
             conn: &self.0,
@@ -296,6 +298,7 @@ impl Connection {
     }
 
     /// Accept the next incoming uni-directional stream
+    #[inline]
     pub fn accept_uni(&self) -> AcceptUni<'_> {
         AcceptUni {
             conn: &self.0,
@@ -313,6 +316,7 @@ impl Connection {
     /// [`open_bi()`]: crate::Connection::open_bi
     /// [`SendStream`]: crate::SendStream
     /// [`RecvStream`]: crate::RecvStream
+    #[inline]
     pub fn accept_bi(&self) -> AcceptBi<'_> {
         AcceptBi {
             conn: &self.0,
@@ -595,6 +599,7 @@ pin_project! {
 
 impl Future for OpenUni<'_> {
     type Output = Result<SendStream, ConnectionError>;
+    #[inline]
     fn poll(self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let (conn, id, is_0rtt) = ready!(poll_open(ctx, this.conn, this.notify, Dir::Uni))?;
@@ -613,6 +618,7 @@ pin_project! {
 
 impl Future for OpenBi<'_> {
     type Output = Result<(SendStream, RecvStream), ConnectionError>;
+    #[inline]
     fn poll(self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let (conn, id, is_0rtt) = ready!(poll_open(ctx, this.conn, this.notify, Dir::Bi))?;
@@ -624,6 +630,7 @@ impl Future for OpenBi<'_> {
     }
 }
 
+#[inline]
 fn poll_open<'a>(
     ctx: &mut Context<'_>,
     conn: &'a ConnectionRef,
@@ -662,6 +669,7 @@ pin_project! {
 impl Future for AcceptUni<'_> {
     type Output = Result<RecvStream, ConnectionError>;
 
+    #[inline]
     fn poll(self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let (conn, id, is_0rtt) = ready!(poll_accept(ctx, this.conn, this.notify, Dir::Uni))?;
@@ -681,6 +689,7 @@ pin_project! {
 impl Future for AcceptBi<'_> {
     type Output = Result<(SendStream, RecvStream), ConnectionError>;
 
+    #[inline]
     fn poll(self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let (conn, id, is_0rtt) = ready!(poll_accept(ctx, this.conn, this.notify, Dir::Bi))?;
